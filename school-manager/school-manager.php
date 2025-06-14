@@ -3,8 +3,8 @@
 /**
  * Plugin Name: School Manager
  * Plugin URI:  https://example.com
- * Description: Creates a School CPT, allows Admins and Managers to assign schools to users, and restricts access based on assignments. Also customizes the admin menu icon and color for the Schools menu and adds Manager and Lector admin menu items.
- * Version:     1.0.3
+ * Description: Creates a School CPT, allows Admins and Managers to assign schools to users, and restricts access based on assignments. Also customizes the admin menu icon and color for the Schools menu, adds Manager and Lector admin menu items, and positions them.
+ * Version:     1.0.5
  * Author:      Your Name
  * Author URI:  https://example.com
  * License:     GPL2
@@ -23,7 +23,7 @@ class School_Manager
         add_action('init', [$this, 'setup_roles'], 20);
         add_action('init', [$this, 'register_school_cpt']);
 
-        // Add admin menu entries for Manager and Lector
+        // Add admin menu entries for Schools, Managers, and Lectors
         add_action('admin_menu', [$this, 'register_user_menus']);
 
         // Control user-edit capabilities for Managers
@@ -59,7 +59,7 @@ class School_Manager
     }
 
     /**
-     * Register the School CPT.
+     * Register the School CPT with explicit menu position.
      */
     public function register_school_cpt()
     {
@@ -70,6 +70,7 @@ class School_Manager
             'rewrite'         => ['slug' => 'schools', 'with_front' => false],
             'show_in_menu'    => true,
             'menu_icon'       => 'dashicons-welcome-learn-more',
+            'menu_position'   => 8,
             'supports'        => ['title', 'editor', 'thumbnail'],
             'capability_type' => 'post',
             'show_in_rest'    => true,
@@ -81,11 +82,12 @@ class School_Manager
     }
 
     /**
-     * Register Manager and Lector menu pages.
+     * Register School, Manager, and Lector menu pages in desired order.
      */
     public function register_user_menus()
     {
-        // Managers menu
+        // Schools menu: same CPT menu already registered at position 6
+        // Managers menu at position 9
         add_menu_page(
             __('Managers', 'school-manager'),
             __('Managers', 'school-manager'),
@@ -93,9 +95,9 @@ class School_Manager
             'users.php?role=manager',
             '',
             'dashicons-businessperson',
-            6
+            9
         );
-        // Lectors menu
+        // Lectors menu at position 10
         add_menu_page(
             __('Lectors', 'school-manager'),
             __('Lectors', 'school-manager'),
@@ -103,7 +105,7 @@ class School_Manager
             'users.php?role=lector',
             '',
             'dashicons-id',
-            7
+            10
         );
     }
 
