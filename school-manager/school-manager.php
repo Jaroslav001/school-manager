@@ -15,6 +15,11 @@ if (! defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
+// Load the file-drive widget class and register shortcode
+require_once plugin_dir_path(__FILE__) . 'includes/school-files-widget.php';
+add_shortcode('school_files', ['School_Files_Widget', 'render_files_shortcode']);
+School_Files_Widget::init_elementor();
+
 class School_Manager
 {
     public function __construct()
