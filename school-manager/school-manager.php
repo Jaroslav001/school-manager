@@ -70,7 +70,7 @@ class School_Manager
             'rewrite'         => ['slug' => 'schools', 'with_front' => false],
             'show_in_menu'    => true,
             'menu_icon'       => 'dashicons-welcome-learn-more',
-            'menu_position'   => 8,
+            'menu_position'   => 21, // under Pages (20)
             'supports'        => ['title', 'editor', 'thumbnail'],
             'capability_type' => 'post',
             'show_in_rest'    => true,
@@ -86,8 +86,6 @@ class School_Manager
      */
     public function register_user_menus()
     {
-        // Schools menu: same CPT menu already registered at position 6
-        // Managers menu at position 9
         add_menu_page(
             __('Managers', 'school-manager'),
             __('Managers', 'school-manager'),
@@ -95,9 +93,9 @@ class School_Manager
             'users.php?role=manager',
             '',
             'dashicons-businessperson',
-            9
+            22
         );
-        // Lectors menu at position 10
+
         add_menu_page(
             __('Lectors', 'school-manager'),
             __('Lectors', 'school-manager'),
@@ -105,7 +103,7 @@ class School_Manager
             'users.php?role=lector',
             '',
             'dashicons-id',
-            10
+            23
         );
     }
 
