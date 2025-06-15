@@ -36,23 +36,35 @@ class Files_Elementor_Widget extends Widget_Base
             ['label' => __('Content', 'files-elementor-widget')]
         );
 
+        // ─── NEW: School selector ──────────────────────────────
+        $schools = get_posts([
+            'post_type'      => 'school',
+            'posts_per_page' => -1,
+            'orderby'        => 'title',
+            'order'          => 'ASC',
+        ]);
+        $options = ['' => __('&mdash; Select a School &mdash;', 'files-elementor-widget')];
+        foreach ($schools as $school) {
+            $options[$school->ID] = get_the_title($school);
+        }
         $this->add_control(
-            'folder',
+            'school_id',
             [
-                'label'       => __('Folder Name', 'files-elementor-widget'),
-                'type'        => Controls_Manager::TEXT,
-                'placeholder' => 'e.g. my-school-files',
-                'description' => __('Folder under wp-content/uploads/file-drive/ containing your files.', 'files-elementor-widget'),
+                'label'   => __('School', 'files-elementor-widget'),
+                'type'    => \Elementor\Controls_Manager::SELECT,
+                'options' => $options,
             ]
         );
+        // ───────────────────────────────────────────────────────
 
         $this->end_controls_section();
     }
 
+
     protected function render()
     {
-        $settings = $this->get_settings_for_display();
-        $folder   = sanitize_file_name($settings['folder']);
+        $settings  = $this->get_settings_for_display();
+        $school_id = intval($settings['school_id']);
 
         // 1) Require login
         if (! is_user_logged_in()) {
@@ -60,40 +72,41 @@ class Files_Elementor_Widget extends Widget_Base
             return;
         }
 
-        // 2) Require folder name
-        if (empty($folder)) {
-            echo '<p>' . esc_html__('Folder name not specified.', 'files-elementor-widget') . '</p>';
+        // 2) Require a School selection
+        if (! $school_id) {
+            echo '<p>' . esc_html__('Please select a School in the widget settings.', 'files-elementor-widget') . '</p>';
             return;
         }
 
-        // 3) Build paths
-        $uploads  = wp_upload_dir();
-        $base_dir = trailingslashit($uploads['basedir']) . 'file-drive/';
-        $base_url = trailingslashit($uploads['baseurl']) . 'file-drive/';
-        $dir      = $base_dir . $folder;
+        // 3) Query your File CPT for that School
+        $files = get_posts([
+            'post_type'      => 'fev_file',  // your File CPT slug
+            'posts_per_page' => -1,
+            'meta_query'     => [[
+                'key'   => '_fev_file_school',
+                'value' => $school_id,
+            ]]
+        ]);
 
-        // 4) Directory checks
-        if (! is_dir($dir)) {
-            printf(
-                '<p>%s: <strong>%s</strong></p>',
-                esc_html__('Folder not found', 'files-elementor-widget'),
-                esc_html($folder)
-            );
-            return;
-        }
-
-        // 5) Scan & list
-        $files = array_diff(scandir($dir), ['.', '..']);
+        // 4) If no files, bail
         if (empty($files)) {
-            echo '<p>' . esc_html__('No files found in this folder.', 'files-elementor-widget') . '</p>';
+            echo '<p>' . esc_html__('No files uploaded for this school.', 'files-elementor-widget') . '</p>';
             return;
         }
 
+        // 5) Render the list
         echo '<ul class="files-widget-list">';
-        foreach ($files as $file) {
-            $url   = esc_url($base_url . rawurlencode($folder) . '/' . rawurlencode($file));
-            $label = esc_html($file);
-            printf('<li><a href="%s" target="_blank" rel="noopener">%s</a></li>', $url, $label);
+        foreach ($files as $file_post) {
+            $att_id    = get_post_meta($file_post->ID, '_fev_file_attachment', true);
+            $url       = $att_id ? wp_get_attachment_url($att_id) : '';
+            $label     = get_the_title($file_post) ?: basename(get_attached_file($att_id));
+            if ($url) {
+                printf(
+                    '<li><a href="%s" target="_blank" rel="noopener">%s</a></li>',
+                    esc_url($url),
+                    esc_html($label)
+                );
+            }
         }
         echo '</ul>';
     }
