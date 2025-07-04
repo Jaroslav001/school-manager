@@ -98,7 +98,7 @@ class School_Manager
             'users.php?role=manager',
             '',
             'dashicons-businessperson',
-            22
+            71
         );
 
         add_menu_page(
@@ -108,7 +108,7 @@ class School_Manager
             'users.php?role=lector',
             '',
             'dashicons-id',
-            23
+            72
         );
     }
 

@@ -44,6 +44,7 @@ function fev_register_file_cpt()
         'show_ui'            => true,
         'show_in_menu'       => true,    // or true to place at top-level
         'menu_icon'          => 'dashicons-media-document',
+        'menu_position'   => 22, // under Schools (21)
         'capability_type'    => 'post',
         'supports'           => [],
         'has_archive'        => false,
@@ -55,6 +56,15 @@ function fev_register_file_cpt()
 add_action('init', function () {
     remove_post_type_support('fev_file', 'title', 'content');
 }, 21);
+
+add_action('init', function () {
+    // Remove the rich text editor
+    remove_post_type_support('fev_file', 'editor');
+}, 20);
+
+add_action('add_meta_boxes', function () {
+    remove_meta_box('slugdiv', 'fev_file', 'normal');
+}, 20);
 
 /**
  * Enqueue the WP Media Uploader on our File CPT screens.
@@ -99,15 +109,31 @@ function fev_file_metabox_callback($post)
     wp_nonce_field('fev_save_file_settings', 'fev_file_settings_nonce');
 
     // 1) Get existing values
-    $existing   = get_post_meta($post->ID, '_fev_file_path', true);
+    $existing_path = get_post_meta($post->ID, '_fev_file_path', true);
     $school_id  = intval(get_post_meta($post->ID, '_fev_file_school', true));
 
-    // 2) Native file input
-    echo '<p><strong>' . esc_html__('Upload File', 'files-elementor-widget') . '</strong></p>';
-    echo '<input type="file" name="fev_file_upload" /><br>';
-    if ($existing) {
-        echo '<em>' . esc_html(basename($existing)) . '</em>';
+    // 1) If no file yet, show the uploader
+    if (! $existing_path) {
+        echo '<p><strong>' . esc_html__('Upload File', 'files-elementor-widget') . '</strong></p>';
+        echo '<input type="file" name="fev_file_upload" /><br>';
+    } else {
+        // 2) When editing, just show the existing filename
+        echo '<p><strong>' . esc_html__('Current File', 'files-elementor-widget') . '</strong></p>';
+        printf(
+            '<p><a href="%1$s" target="_blank">%2$s</a></p>',
+            esc_url(wp_upload_dir()['baseurl'] . '/' . $existing_path),
+            esc_html(basename($existing_path))
+        );
+        // Optional: if you want to allow replacing, uncomment:
+        // echo '<p><em>' . esc_html__( 'To replace, upload a new file below:', 'files-elementor-widget' ) . '</em></p>';
+        // echo '<input type="file" name="fev_file_upload" /><br>';
     }
+
+
+
+    echo '<p><strong>' . esc_html__('Associate with School', 'files-elementor-widget') . '</strong></p>';
+    echo '<select name="fev_file_school">';
+    echo '<option value="">' . esc_html__('&mdash; Select a school &mdash;', 'files-elementor-widget') . '</option>';
 
     // 3) School dropdown
     $schools = get_posts([
@@ -116,9 +142,6 @@ function fev_file_metabox_callback($post)
         'orderby'        => 'title',
         'order'          => 'ASC',
     ]);
-    echo '<p><strong>' . esc_html__('Associate with School', 'files-elementor-widget') . '</strong></p>';
-    echo '<select name="fev_file_school">';
-    echo '<option value="">' . esc_html__('&mdash; Select a school &mdash;', 'files-elementor-widget') . '</option>';
     foreach ($schools as $school) {
         printf(
             '<option value="%d" %s>%s</option>',
@@ -399,40 +422,6 @@ function fev_show_school_column($column, $post_id)
     }
 }
 
-/**
- * 1) Add a “Filter by School” dropdown above the Files CPT list table.
- */
-add_action('restrict_manage_posts', 'fev_add_school_filter', 10, 2);
-function fev_add_school_filter($post_type, $which)
-{
-    if ($post_type !== 'fev_file') {
-        return;
-    }
-
-    // Grab current selection, if any
-    $selected = isset($_GET['school_filter']) ? intval($_GET['school_filter']) : '';
-
-    // Build the dropdown
-    echo '<select name="school_filter" id="dropdown_school_filter">';
-    echo '<option value="">' . esc_html__('— Filter by School —', 'files-elementor-widget') . '</option>';
-
-    $schools = get_posts([
-        'post_type'      => 'school',
-        'posts_per_page' => -1,
-        'orderby'        => 'title',
-        'order'          => 'ASC',
-    ]);
-
-    foreach ($schools as $school) {
-        printf(
-            '<option value="%1$d"%2$s>%3$s</option>',
-            $school->ID,
-            selected($selected, $school->ID, false),
-            esc_html(get_the_title($school))
-        );
-    }
-    echo '</select>';
-}
 
 /**
  * 2) When the filter is submitted, modify the admin query to only show files for that school.
@@ -551,4 +540,24 @@ function sm_inject_schools_into_menu($items, $menu, $args)
     }
 
     return $new;
+}
+
+
+add_action('admin_enqueue_scripts', 'fev_enqueue_admin_menu_colors');
+function fev_enqueue_admin_menu_colors()
+{
+    // Build the full filesystem path to our CSS
+    $css_file = plugin_dir_path(__FILE__) . 'assets/css/admin-menu-colors.css';
+
+    if (file_exists($css_file)) {
+        // Use filemtime() so you don’t have to bump the version manually
+        wp_enqueue_style(
+            'fev-admin-menu-colors',
+            plugin_dir_url(__FILE__) . 'assets/css/admin-menu-colors.css',
+            [],
+            filemtime($css_file)
+        );
+    } else {
+        error_log('❌ Admin CSS NOT found: ' . $css_file);
+    }
 }

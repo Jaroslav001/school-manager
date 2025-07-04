@@ -4,7 +4,6 @@ if (! defined('ABSPATH')) {
 }
 
 use Elementor\Widget_Base;
-use Elementor\Icons_Manager;
 
 class Files_Elementor_Widget extends Widget_Base
 {

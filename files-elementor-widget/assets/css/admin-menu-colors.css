@@ -1,0 +1,40 @@
+/* Schools text */
+#menu-posts-school>a .wp-menu-name {
+    color: #ffbf00 !important;
+}
+
+/* Schools icon (dashicon) */
+#menu-posts-school>a .dashicons-before.dashicons-welcome-learn-more:before {
+    color: #ffbf00 !important;
+}
+
+/* Schools text */
+#toplevel_page_users-role-manager>a .wp-menu-name {
+    color: #ffbf00 !important;
+}
+
+/* Schools icon (dashicon) */
+#toplevel_page_users-role-manager>a .dashicons-before.dashicons-businessperson:before {
+    color: #ffbf00 !important;
+}
+
+/* Schools text */
+#toplevel_page_users-role-lector>a .wp-menu-name {
+    color: #ffbf00 !important;
+}
+
+/* Schools icon (dashicon) */
+#toplevel_page_users-role-lector>a .dashicons-before.dashicons-id:before {
+    color: #ffbf00 !important;
+}
+
+
+/* Schools text */
+#menu-posts-fev_file>a .wp-menu-name {
+    color: #ffbf00 !important;
+}
+
+/* Schools icon (dashicon) */
+#menu-posts-fev_file>a .dashicons-before.dashicons-media-document:before {
+    color: #ffbf00 !important;
+}
