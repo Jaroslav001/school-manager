@@ -21,6 +21,7 @@ require_once __DIR__ . '/includes/cpt-file-registration.php';
 require_once __DIR__ . '/includes/cpt-file-meta-boxes.php';
 require_once __DIR__ . '/includes/cpt-file-admin-columns.php';
 require_once __DIR__ . '/includes/cpt-file-delete-upload.php';
+require_once __DIR__ . '/includes/enqueue-assets.php';
 
 // Wait for Elementor to initialize
 add_action('elementor/init', function () {
@@ -44,60 +45,30 @@ add_action('elementor/init', function () {
 /**
  * 2) When the filter is submitted, modify the admin query to only show files for that school.
  */
-add_action('pre_get_posts', 'fev_apply_school_filter');
-function fev_apply_school_filter(\WP_Query $query)
-{
-    global $pagenow;
+// add_action('pre_get_posts', 'fev_apply_school_filter');
+// function fev_apply_school_filter(\WP_Query $query)
+// {
+//     global $pagenow;
 
-    // Only modify the main admin list query on edit.php for fev_file
-    if (
-        is_admin()
-        && $pagenow === 'edit.php'
-        && $query->is_main_query()
-        && $query->get('post_type') === 'fev_file'
-        && ! empty($_GET['school_filter'])
-    ) {
-        $school_id = intval($_GET['school_filter']);
-        $meta_query = [
-            [
-                'key'   => '_fev_file_school',
-                'value' => $school_id,
-                'compare' => '=',
-            ],
-        ];
-        $query->set('meta_query', $meta_query);
-    }
-}
-
-add_action('wp_enqueue_scripts', 'fev_enqueue_material_icons');
-function fev_enqueue_material_icons()
-{
-    wp_enqueue_style(
-        'material-icons',
-        'https://fonts.googleapis.com/icon?family=Material+Icons',
-        [],
-        null
-    );
-}
-
-add_action('admin_enqueue_scripts', 'fev_enqueue_admin_menu_colors');
-function fev_enqueue_admin_menu_colors()
-{
-    // Build the full filesystem path to our CSS
-    $css_file = plugin_dir_path(__FILE__) . 'assets/css/admin-menu-colors.css';
-
-    if (file_exists($css_file)) {
-        // Use filemtime() so you don’t have to bump the version manually
-        wp_enqueue_style(
-            'fev-admin-menu-colors',
-            plugin_dir_url(__FILE__) . 'assets/css/admin-menu-colors.css',
-            [],
-            filemtime($css_file)
-        );
-    } else {
-        error_log('❌ Admin CSS NOT found: ' . $css_file);
-    }
-}
+//     // Only modify the main admin list query on edit.php for fev_file
+//     if (
+//         is_admin()
+//         && $pagenow === 'edit.php'
+//         && $query->is_main_query()
+//         && $query->get('post_type') === 'fev_file'
+//         && ! empty($_GET['school_filter'])
+//     ) {
+//         $school_id = intval($_GET['school_filter']);
+//         $meta_query = [
+//             [
+//                 'key'   => '_fev_file_school',
+//                 'value' => $school_id,
+//                 'compare' => '=',
+//             ],
+//         ];
+//         $query->set('meta_query', $meta_query);
+//     }
+// }
 
 
 // Schools-menu injector
