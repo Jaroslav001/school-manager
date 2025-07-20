@@ -20,6 +20,7 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 require_once __DIR__ . '/includes/cpt-file-registration.php';
 require_once __DIR__ . '/includes/cpt-file-meta-boxes.php';
 require_once __DIR__ . '/includes/cpt-file-admin-columns.php';
+require_once __DIR__ . '/includes/cpt-file-delete-upload.php';
 
 // Wait for Elementor to initialize
 add_action('elementor/init', function () {
@@ -65,42 +66,6 @@ function fev_apply_school_filter(\WP_Query $query)
             ],
         ];
         $query->set('meta_query', $meta_query);
-    }
-}
-
-/**
- * When a fev_file post is permanently deleted, also delete its uploaded file.
- */
-add_action('before_delete_post', 'fev_delete_physical_file');
-function fev_delete_physical_file($post_id)
-{
-    // Only run on our File CPT
-    if (get_post_type($post_id) !== 'fev_file') {
-        return;
-    }
-
-    // Get the relative path we saved earlier
-    $rel_path = get_post_meta($post_id, '_fev_file_path', true);
-    if (! $rel_path) {
-        return;
-    }
-
-    // Build the full filesystem path
-    $uploads   = wp_upload_dir();
-    $full_path = trailingslashit($uploads['basedir']) . $rel_path;
-
-    // If the file exists, delete it
-    if (file_exists($full_path)) {
-        @unlink($full_path);
-    }
-
-    // Clean up: if the school folder is now empty, remove it too
-    $school_dir = dirname($full_path);
-    if (is_dir($school_dir)) {
-        $contents = array_diff(scandir($school_dir), ['.', '..']);
-        if (empty($contents)) {
-            @rmdir($school_dir);
-        }
     }
 }
 
